@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C# Express 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiddenTear", "HiddenTear\HiddenTear.csproj", "{1A86DAC2-BCBC-4D4E-9750-9DC920310DD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiddenTear-Message", "HiddenTear-Message\HiddenTear-Message.csproj", "{5DDE8B7D-26CC-4FF5-A717-FD8F39661CE1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiddenTear-Decrypt", "HiddenTear-Decrypt\HiddenTear-Decrypt.csproj", "{2FEE7BB1-8B31-4DDE-8A64-583C32187592}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1A86DAC2-BCBC-4D4E-9750-9DC920310DD4}.Debug|x86.ActiveCfg = Debug|x86
+		{1A86DAC2-BCBC-4D4E-9750-9DC920310DD4}.Debug|x86.Build.0 = Debug|x86
+		{1A86DAC2-BCBC-4D4E-9750-9DC920310DD4}.Release|x86.ActiveCfg = Release|x86
+		{1A86DAC2-BCBC-4D4E-9750-9DC920310DD4}.Release|x86.Build.0 = Release|x86
+		{5DDE8B7D-26CC-4FF5-A717-FD8F39661CE1}.Debug|x86.ActiveCfg = Debug|x86
+		{5DDE8B7D-26CC-4FF5-A717-FD8F39661CE1}.Debug|x86.Build.0 = Debug|x86
+		{5DDE8B7D-26CC-4FF5-A717-FD8F39661CE1}.Release|x86.ActiveCfg = Release|x86
+		{5DDE8B7D-26CC-4FF5-A717-FD8F39661CE1}.Release|x86.Build.0 = Release|x86
+		{2FEE7BB1-8B31-4DDE-8A64-583C32187592}.Debug|x86.ActiveCfg = Debug|x86
+		{2FEE7BB1-8B31-4DDE-8A64-583C32187592}.Debug|x86.Build.0 = Debug|x86
+		{2FEE7BB1-8B31-4DDE-8A64-583C32187592}.Release|x86.ActiveCfg = Release|x86
+		{2FEE7BB1-8B31-4DDE-8A64-583C32187592}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
