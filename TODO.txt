@@ -1,0 +1,10 @@
+//TODO: Refactoring
+//TODO: Clean file dropping places(additional logic needed)
+//TODO: Inplement good server logging system
+//TODO: Serverside PHP scripts
+
+
+Readonly files support added.
+Running more than one instance forbidden.
+Partial encryption of large 4KB+ files when using Fast mode (Con - Files are at least partially recoverable).
+Some refactoring done.

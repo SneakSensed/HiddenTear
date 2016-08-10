@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-
+using System.Diagnostics;
+ 
 namespace HiddenTear_Decrypt
 {
     static class Program
@@ -13,6 +14,7 @@ namespace HiddenTear_Decrypt
         [STAThread]
         static void Main()
         {
+            if (Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length > 1) { return; }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
