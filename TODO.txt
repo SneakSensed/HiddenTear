@@ -4,7 +4,7 @@
 
 
 
-Stupid dll dependency reoved :)
+Stupid dll dependency removed :)
 Some basic logging added.
 Php logging script added.
 
