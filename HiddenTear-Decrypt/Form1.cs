@@ -13,10 +13,6 @@ namespace HiddenTear_Decrypt
 {
     public partial class Form1 : Form
     {
-        readonly byte[] SALT = new byte[] { 11, 46, 18, 4, 19, 0, 7, 62 };      //Must be same as the one in HidenTear.Form1
-        readonly string CONTAINMENTPATH = "";                                   //for testing purposes
-
-
         public Form1()
         {
             InitializeComponent();
@@ -36,9 +32,9 @@ namespace HiddenTear_Decrypt
                     this.textBox1.BackColor = Color.Cyan;
                     label3.Refresh();
 
-                    if (!string.IsNullOrEmpty(CONTAINMENTPATH))
+                    if (!string.IsNullOrEmpty(HiddenTear.Settables.CONTAINMENTPATH))
                     {
-                        decryptDirectory(CONTAINMENTPATH);
+                        decryptDirectory(HiddenTear.Settables.CONTAINMENTPATH);
                     }
                     else
                     {
@@ -122,7 +118,7 @@ namespace HiddenTear_Decrypt
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
 
-                    var key = new Rfc2898DeriveBytes(passwordBytes, SALT, 1000);
+                    var key = new Rfc2898DeriveBytes(passwordBytes, HiddenTear.Settables.SALT, 1000);
                     AES.Key = key.GetBytes(AES.KeySize / 8);
                     AES.IV = key.GetBytes(AES.BlockSize / 8);
 

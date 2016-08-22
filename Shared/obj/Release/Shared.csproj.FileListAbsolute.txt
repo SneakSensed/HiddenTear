@@ -1,5 +1,0 @@
-C:\Documents and Settings\smilysk\Desktop\SneakSense\HiddenTear\Shared\obj\Release\ResolveAssemblyReference.cache
-C:\Documents and Settings\smilysk\Desktop\SneakSense\HiddenTear\Shared\bin\Release\Shared.dll
-C:\Documents and Settings\smilysk\Desktop\SneakSense\HiddenTear\Shared\bin\Release\Shared.pdb
-C:\Documents and Settings\smilysk\Desktop\SneakSense\HiddenTear\Shared\obj\Release\Shared.dll
-C:\Documents and Settings\smilysk\Desktop\SneakSense\HiddenTear\Shared\obj\Release\Shared.pdb

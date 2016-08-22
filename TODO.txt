@@ -1,8 +1,12 @@
 //TODO: Refactoring
 //TODO: Clean file dropping places(additional logic needed)
 //TODO: Inplement good server logging system
-//TODO: Serverside PHP scripts
 
+
+
+Stupid dll dependency reoved :)
+Some basic logging added.
+Php logging script added.
 
 Readonly files support added.
 Running more than one instance forbidden.
