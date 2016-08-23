@@ -13,7 +13,7 @@ namespace HiddenTear
         public static readonly string LOGURL = "";                                       //https://www.example.com/hidden-tear/write.php?info=
         public static readonly string CONTAINMENTPATH = "failsafe";                      //remove before using
 
-        public static readonly int PASSLENGTH = 32;
+        public static readonly int PASSLENGTH = 8;
         public static readonly byte[] SALT = new byte[] { 11, 46, 18, 4, 19, 0, 7, 62 };
         public static readonly string[] EXTENTIONS =
         #region extentions

